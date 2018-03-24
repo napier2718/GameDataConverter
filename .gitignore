@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# VisualStudio自動生成
+.vs/
+x64/
+GameDataConverter/x64/
+GameDataConverter.VC.db
