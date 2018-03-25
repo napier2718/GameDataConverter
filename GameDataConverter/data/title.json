@@ -9,8 +9,16 @@
                  "height":480,
                  "id":1,
                  "name":"bg",
+                 "properties":
+                    {
+                     "filePath":"titleBG.png"
+                    },
+                 "propertytypes":
+                    {
+                     "filePath":"string"
+                    },
                  "rotation":0,
-                 "type":"bg",
+                 "type":"image",
                  "visible":true,
                  "width":640,
                  "x":0,
@@ -40,7 +48,7 @@
          "x":0,
          "y":0
         }],
- "nextobjectid":6,
+ "nextobjectid":8,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.1.3",
