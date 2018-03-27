@@ -1,17 +1,65 @@
-{ "height":12,
+{ "height":15,
  "infinite":false,
  "layers":[
+        {
+         "draworder":"topdown",
+         "name":"event",
+         "objects":[
+                {
+                 "height":60,
+                 "id":10,
+                 "name":"startLink",
+                 "properties":
+                    {
+                     "link":"start"
+                    },
+                 "propertytypes":
+                    {
+                     "link":"string"
+                    },
+                 "rotation":0,
+                 "type":"link",
+                 "visible":true,
+                 "width":130,
+                 "x":580,
+                 "y":310
+                }, 
+                {
+                 "height":60,
+                 "id":11,
+                 "name":"endLink",
+                 "properties":
+                    {
+                     "link":"end"
+                    },
+                 "propertytypes":
+                    {
+                     "link":"string"
+                    },
+                 "rotation":0,
+                 "type":"link",
+                 "visible":true,
+                 "width":130,
+                 "x":580,
+                 "y":430
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
         {
          "draworder":"topdown",
          "name":"image",
          "objects":[
                 {
-                 "height":480,
+                 "height":600,
                  "id":1,
                  "name":"bg",
                  "properties":
                     {
-                     "filePath":"titleBG.png"
+                     "filePath":"resource\\titleBG.png"
                     },
                  "propertytypes":
                     {
@@ -20,17 +68,18 @@
                  "rotation":0,
                  "type":"image",
                  "visible":true,
-                 "width":640,
+                 "width":800,
                  "x":0,
                  "y":0
                 }, 
                 {
                  "height":60,
                  "id":5,
-                 "name":"title",
+                 "name":"titleText",
                  "rotation":0,
                  "text":
                     {
+                     "color":"#8080ff",
                      "fontfamily":"\u30e1\u30a4\u30ea\u30aa",
                      "pixelsize":48,
                      "text":"\u30b5\u30f3\u30d7\u30eb\u7e26\u30b7\u30e5\u30fc",
@@ -41,6 +90,44 @@
                  "width":390,
                  "x":60,
                  "y":80
+                }, 
+                {
+                 "height":40,
+                 "id":8,
+                 "name":"startText",
+                 "rotation":0,
+                 "text":
+                    {
+                     "color":"#00ff80",
+                     "fontfamily":"\u30e1\u30a4\u30ea\u30aa",
+                     "pixelsize":32,
+                     "text":"\u59cb\u3081\u308b",
+                     "wrap":true
+                    },
+                 "type":"text",
+                 "visible":true,
+                 "width":96,
+                 "x":600,
+                 "y":320
+                }, 
+                {
+                 "height":40,
+                 "id":9,
+                 "name":"endText",
+                 "rotation":0,
+                 "text":
+                    {
+                     "color":"#00ff80",
+                     "fontfamily":"\u30e1\u30a4\u30ea\u30aa",
+                     "pixelsize":32,
+                     "text":"\u7d42\u308f\u308b",
+                     "wrap":true
+                    },
+                 "type":"text",
+                 "visible":true,
+                 "width":96,
+                 "x":600,
+                 "y":440
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -48,7 +135,7 @@
          "x":0,
          "y":0
         }],
- "nextobjectid":8,
+ "nextobjectid":12,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.1.3",
@@ -57,5 +144,5 @@
  "tilewidth":40,
  "type":"map",
  "version":1,
- "width":16
+ "width":20
 }
