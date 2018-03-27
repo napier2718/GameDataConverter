@@ -54,8 +54,7 @@ namespace std
 
 int main()
 {
-  vector<Object> objectList;
-  int linkSize;
+  vector<Object> bgList, objectList, linkList;
   unordered_map<string, int> imageMap;
   vector<string> imageMapList;
   unordered_map<pair<string, int>, int> fontMap;
@@ -69,7 +68,6 @@ int main()
   jsonData.ParseStream(jsonFS);
   const Value &layers = jsonData["layers"];
   const int layerNum = layers.Size();
-  linkSize = 0;
   for (int i = 0; i < layerNum; i++) {
     const Value &objects = layers[i]["objects"];
     const int objectNum = objects.Size();
@@ -81,7 +79,6 @@ int main()
       if (strncmp(objects[j]["type"].GetString(), "image", 5) == 0) object.type = image;
       else if (strncmp(objects[j]["type"].GetString(), "text", 4) == 0) object.type = text;
       else if (strncmp(objects[j]["type"].GetString(), "link", 4) == 0) {
-        linkSize++;
         object.type = link;
         if (strncmp(objects[j]["properties"]["link"].GetString(), "start", 5) == 0) object.link = start;
         else if (strncmp(objects[j]["properties"]["link"].GetString(), "end", 3) == 0) object.link = LinkType::end;
@@ -117,7 +114,11 @@ int main()
         object.text += cTemp;
         break;
       }
-      objectList.push_back(object);
+      if (object.type == link) linkList.push_back(object);
+      else {
+        if (strncmp(layers[i]["name"].GetString(), "bottom", 6) == 0) bgList.push_back(object);
+        else objectList.push_back(object);
+      }
     }
   }
   fclose(jsonFile);
@@ -139,27 +140,35 @@ int main()
     fwrite(fontMapList[i].first.c_str(), sizeof(char), length, dataFile);
     fwrite(&fontMapList[i].second, sizeof(int), 1, dataFile);
   }
-  size = objectList.size() - linkSize;
+  size = bgList.size();
   fwrite(&size, sizeof(int), 1, dataFile);
-  size += linkSize;
   for (size_t i = 0; i < size; i++) {
-    if (objectList[i].type != link) {
-      fwrite(&objectList[i].type, sizeof(ObjectType), 1, dataFile);
-      fwrite(&objectList[i].posX, sizeof(int), 4, dataFile);
-      fwrite(&objectList[i].id, sizeof(int), 1, dataFile);
-      if (objectList[i].type == text) {
-        int length = (int)(objectList[i].text.size());
-        fwrite(&length, sizeof(int), 1, dataFile);
-        fwrite(objectList[i].text.c_str(), sizeof(char), length, dataFile);
-      }
+    fwrite(&bgList[i].type, sizeof(ObjectType), 1, dataFile);
+    fwrite(&bgList[i].posX, sizeof(int), 4, dataFile);
+    fwrite(&bgList[i].id, sizeof(int), 1, dataFile);
+    if (bgList[i].type == text) {
+      int length = (int)(bgList[i].text.size());
+      fwrite(&length, sizeof(int), 1, dataFile);
+      fwrite(bgList[i].text.c_str(), sizeof(char), length, dataFile);
     }
   }
-  fwrite(&linkSize, sizeof(int), 1, dataFile);
-  for (int i = 0; i < size; i++) {
-    if (objectList[i].type == link) {
-      fwrite(&objectList[i].posX, sizeof(int), 4, dataFile);
-      fwrite(&objectList[i].link, sizeof(LinkType), 1, dataFile);
+  size = objectList.size();
+  fwrite(&size, sizeof(int), 1, dataFile);
+  for (size_t i = 0; i < size; i++) {
+    fwrite(&objectList[i].type, sizeof(ObjectType), 1, dataFile);
+    fwrite(&objectList[i].posX, sizeof(int), 4, dataFile);
+    fwrite(&objectList[i].id, sizeof(int), 1, dataFile);
+    if (objectList[i].type == text) {
+      int length = (int)(objectList[i].text.size());
+      fwrite(&length, sizeof(int), 1, dataFile);
+      fwrite(objectList[i].text.c_str(), sizeof(char), length, dataFile);
     }
+  }
+  size = linkList.size();
+  fwrite(&size, sizeof(int), 1, dataFile);
+  for (int i = 0; i < size; i++) {
+    fwrite(&linkList[i].posX, sizeof(int), 4, dataFile);
+    fwrite(&linkList[i].link, sizeof(LinkType), 1, dataFile);
   }
   fclose(dataFile);
   return 0;
