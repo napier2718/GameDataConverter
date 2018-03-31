@@ -140,6 +140,8 @@ int main()
     fwrite(fontMapList[i].first.c_str(), sizeof(char), length, dataFile);
     fwrite(&fontMapList[i].second, sizeof(int), 1, dataFile);
   }
+  size = objectList.size() + bgList.size();
+  fwrite(&size, sizeof(int), 1, dataFile);
   size = bgList.size();
   fwrite(&size, sizeof(int), 1, dataFile);
   for (size_t i = 0; i < size; i++) {
@@ -153,7 +155,6 @@ int main()
     }
   }
   size = objectList.size();
-  fwrite(&size, sizeof(int), 1, dataFile);
   for (size_t i = 0; i < size; i++) {
     fwrite(&objectList[i].type, sizeof(ObjectType), 1, dataFile);
     fwrite(&objectList[i].posX, sizeof(int), 4, dataFile);
