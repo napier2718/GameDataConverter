@@ -32,11 +32,18 @@ struct Object
   LinkType link;
   string text;
 };
+struct Bullet
+{
+  double posX, posY;
+  double vX, vY;
+  double angle;
+};
 struct Player
 {
   double posX, posY;
   double speed;
   int shotWait;
+  vector<Bullet> shotBullet;
 };
 namespace std
 {
@@ -133,7 +140,17 @@ void ReadPlayerJSONFile(const char *jsonFileName, Player &player)
   player.posX = jsonData["start"]["x"].GetDouble();
   player.posY = jsonData["start"]["y"].GetDouble();
   player.speed = jsonData["speed"].GetDouble();
-  player.shotWait = jsonData["shotWait"].GetInt();
+  player.shotWait = jsonData["shot"]["wait"].GetInt();
+  const Value &bullets = jsonData["shot"]["bullet"];
+  for (unsigned int i = 0; i < bullets.Size(); i++) {
+    Bullet bullet;
+    bullet.posX = bullets[i]["pos"]["x"].GetDouble();
+    bullet.posY = bullets[i]["pos"]["y"].GetDouble();
+    bullet.vX = bullets[i]["v"]["x"].GetDouble();
+    bullet.vY = bullets[i]["v"]["y"].GetDouble();
+    bullet.angle = bullets[i]["angle"].GetDouble();
+    player.shotBullet.push_back(bullet);
+  }
   fclose(jsonFile);
 }
 void WriteString(string &text, FILE *&file)
@@ -188,7 +205,11 @@ int main()
   Player player;
   ReadPlayerJSONFile("data\\player.json", player);
   fopen_s(&dataFile, "data\\player.data", "wb");
-  fwrite(&player, sizeof(Player), 1, dataFile);
+  fwrite(&player.posX, sizeof(double), 3, dataFile);
+  fwrite(&player.shotWait, sizeof(int), 1, dataFile);
+  size = player.shotBullet.size();
+  fwrite(&size, sizeof(int), 1, dataFile);
+  for (int i = 0; i < size; i++) fwrite(&player.shotBullet[i].posX, sizeof(double), 5, dataFile);
   fclose(dataFile);
 
   return 0;
