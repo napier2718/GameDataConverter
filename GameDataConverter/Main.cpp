@@ -1,3 +1,4 @@
+#include "Vector.h"
 #include <cstdio>
 #include <cstring>
 #include <vector>
@@ -26,21 +27,19 @@ enum LinkType
 struct Object
 {
   ObjectType type;
-  int posX, posY;
-  int sizeX, sizeY;
+  Vector<int> pos, size;
   int id;
   LinkType link;
   string text;
 };
 struct Bullet
 {
-  double posX, posY;
-  double vX, vY;
+  Vector<double> pos, v;
   double angle;
 };
 struct Player
 {
-  double posX, posY;
+  Vector<double> pos;
   double speed;
   int shotWait;
   vector<Bullet> shotBullet;
@@ -88,10 +87,10 @@ void ReadTitleJSONFile(const char *jsonFileName, vector<string> &imageList, vect
         if (strncmp(objects[j]["properties"]["link"].GetString(), "start", 5) == 0) object.link = start;
         else if (strncmp(objects[j]["properties"]["link"].GetString(), "end", 3) == 0) object.link = LinkType::end;
       }
-      object.posX = objects[j]["x"].GetInt();
-      object.posY = objects[j]["y"].GetInt();
-      object.sizeX = objects[j]["width"].GetInt();
-      object.sizeY = objects[j]["height"].GetInt();
+      object.pos.x = objects[j]["x"].GetInt();
+      object.pos.y = objects[j]["y"].GetInt();
+      object.size.x = objects[j]["width"].GetInt();
+      object.size.y = objects[j]["height"].GetInt();
       switch (object.type) {
       case image:
       {
@@ -137,17 +136,17 @@ void ReadPlayerJSONFile(const char *jsonFileName, Player &player)
   fopen_s(&jsonFile, jsonFileName, "r");
   FileReadStream jsonFS(jsonFile, cJSONBuffer, sizeof(cJSONBuffer));
   jsonData.ParseStream(jsonFS);
-  player.posX = jsonData["start"]["x"].GetDouble();
-  player.posY = jsonData["start"]["y"].GetDouble();
+  player.pos.x = jsonData["start"]["x"].GetDouble();
+  player.pos.y = jsonData["start"]["y"].GetDouble();
   player.speed = jsonData["speed"].GetDouble();
   player.shotWait = jsonData["shot"]["wait"].GetInt();
   const Value &bullets = jsonData["shot"]["bullet"];
   for (unsigned int i = 0; i < bullets.Size(); i++) {
     Bullet bullet;
-    bullet.posX = bullets[i]["pos"]["x"].GetDouble();
-    bullet.posY = bullets[i]["pos"]["y"].GetDouble();
-    bullet.vX = bullets[i]["v"]["x"].GetDouble();
-    bullet.vY = bullets[i]["v"]["y"].GetDouble();
+    bullet.pos.x = bullets[i]["pos"]["x"].GetDouble();
+    bullet.pos.y = bullets[i]["pos"]["y"].GetDouble();
+    bullet.v.x = bullets[i]["v"]["x"].GetDouble();
+    bullet.v.y = bullets[i]["v"]["y"].GetDouble();
     bullet.angle = bullets[i]["angle"].GetDouble();
     player.shotBullet.push_back(bullet);
   }
@@ -182,21 +181,24 @@ int main()
   fwrite(&size, sizeof(int), 1, dataFile);
   for (size_t i = 0; i < size; i++) {
     fwrite(&bgList[i].type, sizeof(ObjectType), 1, dataFile);
-    fwrite(&bgList[i].posX, sizeof(int), 4, dataFile);
-    fwrite(&bgList[i].id, sizeof(int), 1, dataFile);
+    fwrite(&bgList[i].pos,  sizeof(int),        2, dataFile);
+    fwrite(&bgList[i].size, sizeof(int),        2, dataFile);
+    fwrite(&bgList[i].id,   sizeof(int),        1, dataFile);
     if (bgList[i].type == text) WriteString(bgList[i].text, dataFile);
   }
   size = objectList.size();
   for (size_t i = 0; i < size; i++) {
     fwrite(&objectList[i].type, sizeof(ObjectType), 1, dataFile);
-    fwrite(&objectList[i].posX, sizeof(int), 4, dataFile);
-    fwrite(&objectList[i].id, sizeof(int), 1, dataFile);
+    fwrite(&objectList[i].pos,  sizeof(int),        2, dataFile);
+    fwrite(&objectList[i].size, sizeof(int),        2, dataFile);
+    fwrite(&objectList[i].id,   sizeof(int),        1, dataFile);
     if (objectList[i].type == text) WriteString(objectList[i].text, dataFile);
   }
   size = linkList.size();
   fwrite(&size, sizeof(int), 1, dataFile);
   for (int i = 0; i < size; i++) {
-    fwrite(&linkList[i].posX, sizeof(int), 4, dataFile);
+    fwrite(&linkList[i].pos,  sizeof(int),      2, dataFile);
+    fwrite(&linkList[i].size, sizeof(int),      2, dataFile);
     fwrite(&linkList[i].link, sizeof(LinkType), 1, dataFile);
   }
   fclose(dataFile);
@@ -205,11 +207,16 @@ int main()
   Player player;
   ReadPlayerJSONFile("data\\player.json", player);
   fopen_s(&dataFile, "data\\player.data", "wb");
-  fwrite(&player.posX, sizeof(double), 3, dataFile);
-  fwrite(&player.shotWait, sizeof(int), 1, dataFile);
+  fwrite(&player.pos,      sizeof(double), 2, dataFile);
+  fwrite(&player.speed,    sizeof(double), 1, dataFile);
+  fwrite(&player.shotWait, sizeof(int),    1, dataFile);
   size = player.shotBullet.size();
   fwrite(&size, sizeof(int), 1, dataFile);
-  for (int i = 0; i < size; i++) fwrite(&player.shotBullet[i].posX, sizeof(double), 5, dataFile);
+  for (int i = 0; i < size; i++) {
+    fwrite(&player.shotBullet[i].pos,   sizeof(double), 2, dataFile);
+    fwrite(&player.shotBullet[i].v,     sizeof(double), 2, dataFile);
+    fwrite(&player.shotBullet[i].angle, sizeof(double), 1, dataFile);
+  }
   fclose(dataFile);
 
   return 0;
