@@ -32,6 +32,12 @@ struct Object
   LinkType link;
   string text;
 };
+struct Player
+{
+  double posX, posY;
+  double speed;
+  int shotWait;
+};
 namespace std
 {
   template <>
@@ -48,7 +54,7 @@ void EncodeUtf8ToShiftjis(char *shiftjis, const char *utf8)
   MultiByteToWideChar(CP_UTF8, 0, utf8, -1, wbuf, TEXTSIZE);
   WideCharToMultiByte(CP_ACP, 0, wbuf, -1, (LPSTR)shiftjis, TEXTSIZE, " ", NULL);
 }
-void ReadJSONFile(const char *jsonFileName, vector<string> &imageList, vector<pair<string, int>> &fontList, vector<Object> &bgList, vector<Object> &objectList, vector<Object> &linkList)
+void ReadTitleJSONFile(const char *jsonFileName, vector<string> &imageList, vector<pair<string, int>> &fontList, vector<Object> &bgList, vector<Object> &objectList, vector<Object> &linkList)
 {
   using namespace rapidjson;
   FILE *jsonFile;
@@ -115,6 +121,21 @@ void ReadJSONFile(const char *jsonFileName, vector<string> &imageList, vector<pa
   }
   fclose(jsonFile);
 }
+void ReadPlayerJSONFile(const char *jsonFileName, Player &player)
+{
+  using namespace rapidjson;
+  FILE *jsonFile;
+  char cJSONBuffer[65536];
+  Document jsonData;
+  fopen_s(&jsonFile, jsonFileName, "r");
+  FileReadStream jsonFS(jsonFile, cJSONBuffer, sizeof(cJSONBuffer));
+  jsonData.ParseStream(jsonFS);
+  player.posX = jsonData["start"]["x"].GetDouble();
+  player.posY = jsonData["start"]["y"].GetDouble();
+  player.speed = jsonData["speed"].GetDouble();
+  player.shotWait = jsonData["shotWait"].GetInt();
+  fclose(jsonFile);
+}
 void WriteString(string &text, FILE *&file)
 {
   int length = (int)(text.size());
@@ -126,8 +147,7 @@ int main()
   vector<string> imageList;
   vector<pair<string, int>> fontList;
   vector<Object> bgList, objectList, linkList;
-  ReadJSONFile("data\\title.json", imageList, fontList, bgList, objectList, linkList);
-
+  ReadTitleJSONFile("data\\title.json", imageList, fontList, bgList, objectList, linkList);
   FILE *dataFile;
   fopen_s(&dataFile, "data\\title.data", "wb");
   size_t size = imageList.size();
@@ -163,5 +183,13 @@ int main()
     fwrite(&linkList[i].link, sizeof(LinkType), 1, dataFile);
   }
   fclose(dataFile);
+
+
+  Player player;
+  ReadPlayerJSONFile("data\\player.json", player);
+  fopen_s(&dataFile, "data\\player.data", "wb");
+  fwrite(&player, sizeof(Player), 1, dataFile);
+  fclose(dataFile);
+
   return 0;
 }
