@@ -1,12 +1,13 @@
 #include "Vector.h"
+// RapidJSON
+#include "rapidjson/document.h"
+#include "rapidjson/filereadstream.h"
+
 #include <cstdio>
 #include <cstring>
 #include <vector>
 #include <unordered_map>
 #include <Windows.h>
-// RapidJSON
-#include "rapidjson/document.h"
-#include "rapidjson/filereadstream.h"
 
 #define TEXTSIZE 128
 
@@ -59,6 +60,23 @@ void EncodeUtf8ToShiftjis(char *shiftjis, const char *utf8)
   static wchar_t wbuf[TEXTSIZE];
   MultiByteToWideChar(CP_UTF8, 0, utf8, -1, wbuf, TEXTSIZE);
   WideCharToMultiByte(CP_ACP, 0, wbuf, -1, (LPSTR)shiftjis, TEXTSIZE, " ", NULL);
+}
+void WriteString(string &text, FILE *&file)
+{
+  int length = (int)(text.size());
+  fwrite(&length, sizeof(int), 1, file);
+  fwrite(text.c_str(), sizeof(char), length, file);
+}
+void WriteObjectList(vector<Object> &objectList, FILE *&file)
+{
+  size_t size = objectList.size();
+  for (size_t i = 0; i < size; i++) {
+    fwrite(&objectList[i].type, sizeof(ObjectType), 1, file);
+    fwrite(&objectList[i].pos, sizeof(int), 2, file);
+    fwrite(&objectList[i].size, sizeof(int), 2, file);
+    fwrite(&objectList[i].id, sizeof(int), 1, file);
+    if (objectList[i].type == text) WriteString(objectList[i].text, file);
+  }
 }
 void ReadTitleJSONFile(const char *jsonFileName, vector<string> &imageList, vector<pair<string, int>> &fontList, vector<Object> &bgList, vector<Object> &objectList, vector<Object> &linkList)
 {
@@ -127,6 +145,34 @@ void ReadTitleJSONFile(const char *jsonFileName, vector<string> &imageList, vect
   }
   fclose(jsonFile);
 }
+void WriteTitleDataFile(const char *dataFileName, vector<string> &imageList, vector<pair<string, int>> &fontList, vector<Object> &bgList, vector<Object> &objectList, vector<Object> &linkList)
+{
+  FILE *dataFile;
+  fopen_s(&dataFile, dataFileName, "wb");
+  size_t size = imageList.size();
+  fwrite(&size, sizeof(int), 1, dataFile);
+  for (size_t i = 0; i < size; i++) WriteString(imageList[i], dataFile);
+  size = fontList.size();
+  fwrite(&size, sizeof(int), 1, dataFile);
+  for (size_t i = 0; i < size; i++) {
+    WriteString(fontList[i].first, dataFile);
+    fwrite(&fontList[i].second, sizeof(int), 1, dataFile);
+  }
+  size = objectList.size() + bgList.size();
+  fwrite(&size, sizeof(int), 1, dataFile);
+  size = bgList.size();
+  fwrite(&size, sizeof(int), 1, dataFile);
+  WriteObjectList(bgList, dataFile);
+  WriteObjectList(objectList, dataFile);
+  size = linkList.size();
+  fwrite(&size, sizeof(int), 1, dataFile);
+  for (int i = 0; i < size; i++) {
+    fwrite(&linkList[i].pos, sizeof(int), 2, dataFile);
+    fwrite(&linkList[i].size, sizeof(int), 2, dataFile);
+    fwrite(&linkList[i].link, sizeof(LinkType), 1, dataFile);
+  }
+  fclose(dataFile);
+}
 void ReadPlayerJSONFile(const char *jsonFileName, Player &player)
 {
   using namespace rapidjson;
@@ -152,11 +198,21 @@ void ReadPlayerJSONFile(const char *jsonFileName, Player &player)
   }
   fclose(jsonFile);
 }
-void WriteString(string &text, FILE *&file)
+void WritePlayerDataFile(const char *dataFileName, Player &player)
 {
-  int length = (int)(text.size());
-  fwrite(&length, sizeof(int), 1, file);
-  fwrite(text.c_str(), sizeof(char), length, file);
+  FILE *dataFile;
+  fopen_s(&dataFile, dataFileName, "wb");
+  fwrite(&player.pos, sizeof(double), 2, dataFile);
+  fwrite(&player.speed, sizeof(double), 1, dataFile);
+  fwrite(&player.shotWait, sizeof(int), 1, dataFile);
+  size_t size = player.shotBullet.size();
+  fwrite(&size, sizeof(int), 1, dataFile);
+  for (int i = 0; i < size; i++) {
+    fwrite(&player.shotBullet[i].pos, sizeof(double), 2, dataFile);
+    fwrite(&player.shotBullet[i].v, sizeof(double), 2, dataFile);
+    fwrite(&player.shotBullet[i].angle, sizeof(double), 1, dataFile);
+  }
+  fclose(dataFile);
 }
 int main()
 {
@@ -164,60 +220,11 @@ int main()
   vector<pair<string, int>> fontList;
   vector<Object> bgList, objectList, linkList;
   ReadTitleJSONFile("data\\title.json", imageList, fontList, bgList, objectList, linkList);
-  FILE *dataFile;
-  fopen_s(&dataFile, "data\\title.data", "wb");
-  size_t size = imageList.size();
-  fwrite(&size, sizeof(int), 1, dataFile);
-  for (size_t i = 0; i < size; i++) WriteString(imageList[i], dataFile);
-  size = fontList.size();
-  fwrite(&size, sizeof(int), 1, dataFile);
-  for (size_t i = 0; i < size; i++) {
-    WriteString(fontList[i].first, dataFile);
-    fwrite(&fontList[i].second, sizeof(int), 1, dataFile);
-  }
-  size = objectList.size() + bgList.size();
-  fwrite(&size, sizeof(int), 1, dataFile);
-  size = bgList.size();
-  fwrite(&size, sizeof(int), 1, dataFile);
-  for (size_t i = 0; i < size; i++) {
-    fwrite(&bgList[i].type, sizeof(ObjectType), 1, dataFile);
-    fwrite(&bgList[i].pos,  sizeof(int),        2, dataFile);
-    fwrite(&bgList[i].size, sizeof(int),        2, dataFile);
-    fwrite(&bgList[i].id,   sizeof(int),        1, dataFile);
-    if (bgList[i].type == text) WriteString(bgList[i].text, dataFile);
-  }
-  size = objectList.size();
-  for (size_t i = 0; i < size; i++) {
-    fwrite(&objectList[i].type, sizeof(ObjectType), 1, dataFile);
-    fwrite(&objectList[i].pos,  sizeof(int),        2, dataFile);
-    fwrite(&objectList[i].size, sizeof(int),        2, dataFile);
-    fwrite(&objectList[i].id,   sizeof(int),        1, dataFile);
-    if (objectList[i].type == text) WriteString(objectList[i].text, dataFile);
-  }
-  size = linkList.size();
-  fwrite(&size, sizeof(int), 1, dataFile);
-  for (int i = 0; i < size; i++) {
-    fwrite(&linkList[i].pos,  sizeof(int),      2, dataFile);
-    fwrite(&linkList[i].size, sizeof(int),      2, dataFile);
-    fwrite(&linkList[i].link, sizeof(LinkType), 1, dataFile);
-  }
-  fclose(dataFile);
-
+  WriteTitleDataFile("data\\title.data", imageList, fontList, bgList, objectList, linkList);
 
   Player player;
   ReadPlayerJSONFile("data\\player.json", player);
-  fopen_s(&dataFile, "data\\player.data", "wb");
-  fwrite(&player.pos,      sizeof(double), 2, dataFile);
-  fwrite(&player.speed,    sizeof(double), 1, dataFile);
-  fwrite(&player.shotWait, sizeof(int),    1, dataFile);
-  size = player.shotBullet.size();
-  fwrite(&size, sizeof(int), 1, dataFile);
-  for (int i = 0; i < size; i++) {
-    fwrite(&player.shotBullet[i].pos,   sizeof(double), 2, dataFile);
-    fwrite(&player.shotBullet[i].v,     sizeof(double), 2, dataFile);
-    fwrite(&player.shotBullet[i].angle, sizeof(double), 1, dataFile);
-  }
-  fclose(dataFile);
+  WritePlayerDataFile("data\\player.data", player);
 
   return 0;
 }
