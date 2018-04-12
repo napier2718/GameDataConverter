@@ -34,6 +34,7 @@ struct Object
   Vector<int> pos, size;
   int id;
   LinkType link;
+  int colorID;
   string text;
 };
 struct Bullet
@@ -78,16 +79,20 @@ void WriteObjectList(vector<Object> &objectList, FILE *&file)
     fwrite(&objectList[i].pos, sizeof(int), 2, file);
     fwrite(&objectList[i].size, sizeof(int), 2, file);
     fwrite(&objectList[i].id, sizeof(int), 1, file);
-    if (objectList[i].type == text) WriteString(objectList[i].text, file);
+    if (objectList[i].type == text) {
+      fwrite(&objectList[i].colorID, sizeof(int), 1, file);
+      WriteString(objectList[i].text, file);
+    }
   }
 }
-void ReadTitleJSONFile(const char *jsonFileName, vector<string> &imageList, vector<pair<string, int>> &fontList, vector<Object> &bgList, vector<Object> &objectList, vector<Object> &linkList)
+void ReadTitleJSONFile(const char *jsonFileName, vector<string> &imageList, vector<unsigned int> &colorList, vector<pair<string, int>> &fontList, vector<Object> &bgList, vector<Object> &objectList, vector<Object> &linkList)
 {
   using namespace rapidjson;
   FILE *jsonFile;
   char cJSONBuffer[65536], cTexiBuffer[TEXTSIZE];
   Document jsonData;
   unordered_map<string, int> imageMap;
+  unordered_map<string, int> colorMap;
   unordered_map<pair<string, int>, int> fontMap;
   fopen_s(&jsonFile, jsonFileName, "r");
   FileReadStream jsonFS(jsonFile, cJSONBuffer, sizeof(cJSONBuffer));
@@ -126,6 +131,13 @@ void ReadTitleJSONFile(const char *jsonFileName, vector<string> &imageList, vect
       break;
       case text:
       {
+        string color(objects[j]["text"]["color"].GetString());
+        if (colorMap.find(color) == colorMap.end()) {
+          object.colorID = (int)(colorMap.size());
+          colorMap[color] = object.colorID;
+          colorList.push_back(0xff000000 + stoi(color.c_str() + 1, NULL, 16));
+        }
+        else object.id = colorMap[color];
         EncodeUtf8ToShiftjis(cTexiBuffer, objects[j]["text"]["fontfamily"].GetString());
         pair<string, int> font = make_pair(string(cTexiBuffer), objects[j]["text"]["pixelsize"].GetInt());
         if (fontMap.find(font) == fontMap.end()) {
@@ -148,13 +160,16 @@ void ReadTitleJSONFile(const char *jsonFileName, vector<string> &imageList, vect
   }
   fclose(jsonFile);
 }
-void WriteTitleDataFile(const char *dataFileName, vector<string> &imageList, vector<pair<string, int>> &fontList, vector<Object> &bgList, vector<Object> &objectList, vector<Object> &linkList)
+void WriteTitleDataFile(const char *dataFileName, vector<string> &imageList, vector<unsigned int> &colorList, vector<pair<string, int>> &fontList, vector<Object> &bgList, vector<Object> &objectList, vector<Object> &linkList)
 {
   FILE *dataFile;
   fopen_s(&dataFile, dataFileName, "wb");
   size_t size = imageList.size();
   fwrite(&size, sizeof(int), 1, dataFile);
   for (size_t i = 0; i < size; i++) WriteString(imageList[i], dataFile);
+  size = colorList.size();
+  fwrite(&size, sizeof(int), 1, dataFile);
+  for (size_t i = 0; i < size; i++) fwrite(&colorList[i], sizeof(unsigned int), 1, dataFile);
   size = fontList.size();
   fwrite(&size, sizeof(int), 1, dataFile);
   for (size_t i = 0; i < size; i++) {
@@ -266,10 +281,11 @@ void WritePlayerDataFile(const char *dataFileName, Player &player)
 int main()
 {
   vector<string> imageList;
+  vector<unsigned int> colorList;
   vector<pair<string, int>> fontList;
   vector<Object> bgList, objectList, linkList;
-  ReadTitleJSONFile("data\\title.json", imageList, fontList, bgList, objectList, linkList);
-  WriteTitleDataFile("data\\title.data", imageList, fontList, bgList, objectList, linkList);
+  ReadTitleJSONFile("data\\title.json", imageList, colorList, fontList, bgList, objectList, linkList);
+  WriteTitleDataFile("data\\title.data", imageList, colorList, fontList, bgList, objectList, linkList);
 
   Player player;
   ReadPlayerCSVFile("data\\player.csv", player);
