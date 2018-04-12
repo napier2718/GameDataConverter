@@ -3,10 +3,13 @@
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
 
+#include <algorithm>
 #include <cstdio>
-#include <cstring>
-#include <vector>
+#include <fstream>
+#include <sstream>
+#include <String>
 #include <unordered_map>
+#include <vector>
 #include <Windows.h>
 
 #define TEXTSIZE 128
@@ -173,30 +176,76 @@ void WriteTitleDataFile(const char *dataFileName, vector<string> &imageList, vec
   }
   fclose(dataFile);
 }
-void ReadPlayerJSONFile(const char *jsonFileName, Player &player)
+void ReadPlayerCSVFile(const char *csvFileName, Player &player)
 {
-  using namespace rapidjson;
-  FILE *jsonFile;
-  char cJSONBuffer[65536];
-  Document jsonData;
-  fopen_s(&jsonFile, jsonFileName, "r");
-  FileReadStream jsonFS(jsonFile, cJSONBuffer, sizeof(cJSONBuffer));
-  jsonData.ParseStream(jsonFS);
-  player.pos.x = jsonData["start"]["x"].GetDouble();
-  player.pos.y = jsonData["start"]["y"].GetDouble();
-  player.speed = jsonData["speed"].GetDouble();
-  player.shotWait = jsonData["shot"]["wait"].GetInt();
-  const Value &bullets = jsonData["shot"]["bullet"];
-  for (unsigned int i = 0; i < bullets.Size(); i++) {
-    Bullet bullet;
-    bullet.pos.x = bullets[i]["pos"]["x"].GetDouble();
-    bullet.pos.y = bullets[i]["pos"]["y"].GetDouble();
-    bullet.v.x = bullets[i]["v"]["x"].GetDouble();
-    bullet.v.y = bullets[i]["v"]["y"].GetDouble();
-    bullet.angle = bullets[i]["angle"].GetDouble();
-    player.shotBullet.push_back(bullet);
+  ifstream csvFile(csvFileName);
+  vector<int> types;
+  bool isFirst = true;
+  while (!csvFile.eof()) {
+    vector<string> record;
+    string buffer;
+    csvFile >> buffer;
+    if (buffer.empty()) break;
+    istringstream sBuffer(buffer);
+    while (getline(sBuffer, buffer, ',')) record.push_back(buffer);
+    if (any_of(record[0].cbegin(), record[0].cend(), isdigit))
+    {
+      if (isFirst) {
+        for (unsigned int i = 0; i < record.size(); i++) {
+          switch (types[i]) {
+          case 1:
+            player.pos.x = stod(record[i]);
+            break;
+          case 2:
+            player.pos.y = stod(record[i]);
+            break;
+          case 3:
+            player.speed = stod(record[i]);
+            break;
+          case 4:
+            player.shotWait = stoi(record[i]);
+            break;
+          }
+        }
+        isFirst = false;
+      }
+      else {
+        Bullet bullet;
+        double speed;
+        for (unsigned int i = 0; i < record.size(); i++) {
+          switch (types[i]) {
+          case 1:
+            bullet.pos.x = stod(record[i]);
+            break;
+          case 2:
+            bullet.pos.y = stod(record[i]);
+            break;
+          case 3:
+            speed = stod(record[i]);
+            bullet.v.set(0.0, speed);
+            break;
+          case 4:
+            bullet.angle = stod(record[i]);
+            break;
+          }
+        }
+        bullet.v.rotate(bullet.angle);
+        player.shotBullet.push_back(bullet);
+      }
+    }
+    else
+    {
+      types.clear();
+      for (unsigned int i = 0; i < record.size(); i++) {
+        if (record[i] == "posX" || record[i] == "PosX") types.push_back(1);
+        else if (record[i] == "posY" || record[i] == "PosY") types.push_back(2);
+        else if (record[i] == "speed" || record[i] == "Speed") types.push_back(3);
+        else if (record[i] == "shotWait" || record[i] == "ShotWait") types.push_back(4);
+        else if (record[i] == "angle" || record[i] == "Angle") types.push_back(4);
+        else types.push_back(0);
+      }
+    }
   }
-  fclose(jsonFile);
 }
 void WritePlayerDataFile(const char *dataFileName, Player &player)
 {
@@ -223,7 +272,7 @@ int main()
   WriteTitleDataFile("data\\title.data", imageList, fontList, bgList, objectList, linkList);
 
   Player player;
-  ReadPlayerJSONFile("data\\player.json", player);
+  ReadPlayerCSVFile("data\\player.csv", player);
   WritePlayerDataFile("data\\player.data", player);
 
   return 0;
