@@ -1,0 +1,12 @@
+filepath,sizeX,sizeY,divX,divY,
+resource\player.png,16,16,4,4,
+resource\enemy.png,16,16,4,4,
+resource\bullet.png,8,8,4,4,
+gHandleID,sizeX,sizeY,enableAnimation,animationFrame,animationWait
+0,32,32,0,1,1
+1,32,32,0,1,1
+2,32,32,0,1,1
+3,32,32,0,1,1
+16,32,32,1,6,6
+24,32,32,1,6,6
+32,16,16,0,1,1
