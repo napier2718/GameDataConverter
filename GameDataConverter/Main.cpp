@@ -1,7 +1,4 @@
 #include "Vector.h"
-// RapidJSON
-#include "rapidjson/document.h"
-#include "rapidjson/filereadstream.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -11,6 +8,10 @@
 #include <unordered_map>
 #include <vector>
 #include <Windows.h>
+
+// RapidJSON
+#include "rapidjson/document.h"
+#include "rapidjson/filereadstream.h"
 
 #define TEXTSIZE 128
 
