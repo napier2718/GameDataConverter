@@ -1,0 +1,4 @@
+filepath,sizeX,sizeY,divX,divY
+resource\player.png,16,16,4,4
+resource\enemy.png,16,16,4,4
+resource\bullet.png,8,8,4,4

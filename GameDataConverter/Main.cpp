@@ -209,11 +209,11 @@ void WriteTitleDataFile(const char *dataFileName, vector<string> &imageList, vec
   }
   fclose(dataFile);
 }
-void ReadGraphicCSVFile(const char *csvFileName, vector<GraphicImage> &imageList, vector<GraphicPattern> &patternList)
+void ReadGraphicCSVFile(const char *fileCsvFileName, const char *imageCsvFileName, vector<GraphicImage> &imageList, vector<GraphicPattern> &patternList)
 {
-  ifstream csvFile(csvFileName);
+  ifstream csvFile(fileCsvFileName);
   vector<int> types;
-  bool isHeader = true, isFirst = true;
+  bool isHeader = true;
   while (!csvFile.eof()) {
     vector<string> record;
     string buffer;
@@ -221,77 +221,90 @@ void ReadGraphicCSVFile(const char *csvFileName, vector<GraphicImage> &imageList
     if (buffer.empty()) break;
     istringstream sBuffer(buffer);
     while (getline(sBuffer, buffer, ',')) record.push_back(buffer);
-    if (isFirst && !isHeader && all_of(record[1].cbegin(), record[1].cend(), isalpha)) {
-      isHeader = true;
-      isFirst = false;
-    }
     if (isHeader) {
-      types.clear();
       for (unsigned int i = 0; i < record.size(); i++) {
-        if (record[i] == "filepath"             || record[i] == "FilePath") types.push_back(1);
-        else if (record[i] == "gHandleID"       || record[i] == "GHandleID") types.push_back(1);
-        else if (record[i] == "sizeX"           || record[i] == "SizeX") types.push_back(2);
-        else if (record[i] == "sizeY"           || record[i] == "SizeY") types.push_back(3);
-        else if (record[i] == "divX"            || record[i] == "DivX") types.push_back(4);
-        else if (record[i] == "enableAnimation" || record[i] == "EnableAnimation") types.push_back(4);
-        else if (record[i] == "divY"            || record[i] == "DivY") types.push_back(5);
-        else if (record[i] == "animationFrame"  || record[i] == "AnimationFrame") types.push_back(5);
-        else if (record[i] == "animationWait"   || record[i] == "AnimationWait") types.push_back(6);
+        if (record[i] == "filepath" || record[i] == "FilePath") types.push_back(1);
+        else if (record[i] == "sizeX" || record[i] == "SizeX") types.push_back(2);
+        else if (record[i] == "sizeY" || record[i] == "SizeY") types.push_back(3);
+        else if (record[i] == "divX" || record[i] == "DivX") types.push_back(4);
+        else if (record[i] == "divY" || record[i] == "DivY") types.push_back(5);
         else types.push_back(0);
       }
       isHeader = false;
     }
     else {
-      if (isFirst)
-      {
-        GraphicImage image;
-        for (unsigned int i = 0; i < record.size(); i++) {
-          switch (types[i]) {
-          case 1:
-            image.filepath = record[i];
-            break;
-          case 2:
-            image.size.x = stoi(record[i]);
-            break;
-          case 3:
-            image.size.y = stoi(record[i]);
-            break;
-          case 4:
-            image.div.x = stoi(record[i]);
-            break;
-          case 5:
-            image.div.y = stoi(record[i]);
-            break;
-          }
+      GraphicImage image;
+      for (unsigned int i = 0; i < record.size(); i++) {
+        switch (types[i]) {
+        case 1:
+          image.filepath = record[i];
+          break;
+        case 2:
+          image.size.x = stoi(record[i]);
+          break;
+        case 3:
+          image.size.y = stoi(record[i]);
+          break;
+        case 4:
+          image.div.x = stoi(record[i]);
+          break;
+        case 5:
+          image.div.y = stoi(record[i]);
+          break;
         }
-        imageList.push_back(image);
       }
-      else {
-        GraphicPattern pattern;
-        for (unsigned int i = 0; i < record.size(); i++) {
-          switch (types[i]) {
-          case 1:
-            pattern.gHandleID = stoi(record[i]);
-            break;
-          case 2:
-            pattern.size.x = stoi(record[i]);
-            break;
-          case 3:
-            pattern.size.y = stoi(record[i]);
-            break;
-          case 4:
-            pattern.enableAnimation = (stoi(record[i]) == 1 ? true : false);
-            break;
-          case 5:
-            pattern.animationFrame = stoi(record[i]);
-            break;
-          case 6:
-            pattern.animationWait = stoi(record[i]);
-            break;
-          }
+      imageList.push_back(image);
+    }
+  }
+  csvFile.close();
+
+  csvFile.open(imageCsvFileName);
+  types.clear();
+  isHeader = true;
+  while (!csvFile.eof()) {
+    vector<string> record;
+    string buffer;
+    csvFile >> buffer;
+    if (buffer.empty()) break;
+    istringstream sBuffer(buffer);
+    while (getline(sBuffer, buffer, ',')) record.push_back(buffer);
+    if (isHeader) {
+      for (unsigned int i = 0; i < record.size(); i++) {
+        if (record[i] == "gHandleID" || record[i] == "GHandleID") types.push_back(1);
+        else if (record[i] == "sizeX" || record[i] == "SizeX") types.push_back(2);
+        else if (record[i] == "sizeY" || record[i] == "SizeY") types.push_back(3);
+        else if (record[i] == "enableAnimation" || record[i] == "EnableAnimation") types.push_back(4);
+        else if (record[i] == "animationFrame" || record[i] == "AnimationFrame") types.push_back(5);
+        else if (record[i] == "animationWait" || record[i] == "AnimationWait") types.push_back(6);
+        else types.push_back(0);
+      }
+      isHeader = false;
+    }
+    else {
+      GraphicPattern pattern;
+      for (unsigned int i = 0; i < record.size(); i++) {
+        switch (types[i]) {
+        case 1:
+          pattern.gHandleID = stoi(record[i]);
+          break;
+        case 2:
+          pattern.size.x = stoi(record[i]);
+          break;
+        case 3:
+          pattern.size.y = stoi(record[i]);
+          break;
+        case 4:
+          pattern.enableAnimation = (stoi(record[i]) == 1 ? true : false);
+          break;
+        case 5:
+          pattern.animationFrame = stoi(record[i]);
+          break;
+        case 6:
+          pattern.animationWait = stoi(record[i]);
+          break;
         }
-        patternList.push_back(pattern);
       }
+      patternList.push_back(pattern);
     }
   }
 }
@@ -315,6 +328,52 @@ void WriteGraphicDataFile(const char *dataFileName, vector<GraphicImage> &imageL
     fwrite(&patternList[i].animationFrame, sizeof(int), 2, dataFile);
   }
   fclose(dataFile);
+}
+void ReadHitBoxCSVFile(const char *csvFileName, vector<Vector<double>> &hitboxList)
+{
+  ifstream csvFile(csvFileName);
+  vector<int> types;
+  bool isHeader = true;
+  while (!csvFile.eof()) {
+    vector<string> record;
+    string buffer;
+    csvFile >> buffer;
+    if (buffer.empty()) break;
+    istringstream sBuffer(buffer);
+    while (getline(sBuffer, buffer, ',')) record.push_back(buffer);
+    if (isHeader) {
+      for (unsigned int i = 0; i < record.size(); i++) {
+        if (record[i] == "sizeX" || record[i] == "SizeX") types.push_back(1);
+        else if (record[i] == "sizeY" || record[i] == "SizeY") types.push_back(2);
+        else types.push_back(0);
+      }
+      isHeader = false;
+    }
+    else {
+      Vector<double> hitbox;
+      for (unsigned int i = 0; i < record.size(); i++) {
+        switch (types[i]) {
+        case 1:
+          hitbox.x = stod(record[i]);
+          break;
+        case 2:
+          hitbox.y = stod(record[i]);
+          break;
+        }
+      }
+      hitboxList.push_back(hitbox);
+    }
+  }
+}
+void WriteHitBoxDataFile(const char *dataFileName, vector<Vector<double>> &hitboxList)
+{
+  FILE *dataFile;
+  fopen_s(&dataFile, dataFileName, "wb");
+  size_t size = hitboxList.size();
+  fwrite(&size, sizeof(int), 1, dataFile);
+  for (int i = 0; i < size; i++) {
+    fwrite(&hitboxList[i], sizeof(double), 2, dataFile);
+  }
 }
 void ReadPlayerCSVFile(const char *csvFileName, Player &player)
 {
@@ -475,8 +534,12 @@ int main()
 
   vector<GraphicImage> imageList;
   vector<GraphicPattern> patternList;
-  ReadGraphicCSVFile("data\\graphic.csv", imageList, patternList);
+  ReadGraphicCSVFile("data\\graphicFile.csv", "data\\graphicImage.csv", imageList, patternList);
   WriteGraphicDataFile("data\\graphic.data", imageList, patternList);
+
+  vector<Vector<double>> hitboxList;
+  ReadHitBoxCSVFile("data\\hitbox.csv", hitboxList);
+  WriteHitBoxDataFile("data\\hitbox.data", hitboxList);
 
   Player player;
   ReadPlayerCSVFile("data\\player.csv", player);
