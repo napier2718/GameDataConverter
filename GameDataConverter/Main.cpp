@@ -53,13 +53,14 @@ struct GraphicPattern
 struct Bullet
 {
   Vector<double> pos, v;
+  int graphicID, hitboxID;
   double angle;
 };
 struct Player
 {
   Vector<double> pos;
   double speed;
-  int shotWait;
+  int graphicID, shotWait;
   vector<Bullet> shotBullet;
 };
 struct Enemy
@@ -402,6 +403,9 @@ void ReadPlayerCSVFile(const char *csvFileName, Player &player)
             player.speed = stod(record[i]);
             break;
           case 4:
+            player.graphicID = stoi(record[i]);
+            break;
+          case 5:
             player.shotWait = stoi(record[i]);
             break;
           }
@@ -424,6 +428,12 @@ void ReadPlayerCSVFile(const char *csvFileName, Player &player)
             bullet.v.set(0.0, speed);
             break;
           case 4:
+            bullet.graphicID = stoi(record[i]);
+            break;
+          case 5:
+            bullet.hitboxID = stoi(record[i]);
+            break;
+          case 6:
             bullet.angle = stod(record[i]);
             break;
           }
@@ -439,8 +449,10 @@ void ReadPlayerCSVFile(const char *csvFileName, Player &player)
         if (record[i] == "posX" || record[i] == "PosX") types.push_back(1);
         else if (record[i] == "posY" || record[i] == "PosY") types.push_back(2);
         else if (record[i] == "speed" || record[i] == "Speed") types.push_back(3);
-        else if (record[i] == "shotWait" || record[i] == "ShotWait") types.push_back(4);
-        else if (record[i] == "angle" || record[i] == "Angle") types.push_back(4);
+        else if (record[i] == "graphic" || record[i] == "Graphic") types.push_back(4);
+        else if (record[i] == "hitbox" || record[i] == "Hitbox") types.push_back(5);
+        else if (record[i] == "shotWait" || record[i] == "ShotWait") types.push_back(5);
+        else if (record[i] == "angle" || record[i] == "Angle") types.push_back(6);
         else types.push_back(0);
       }
     }
@@ -452,12 +464,15 @@ void WritePlayerDataFile(const char *dataFileName, Player &player)
   fopen_s(&dataFile, dataFileName, "wb");
   fwrite(&player.pos, sizeof(double), 2, dataFile);
   fwrite(&player.speed, sizeof(double), 1, dataFile);
+  fwrite(&player.graphicID, sizeof(int), 1, dataFile);
   fwrite(&player.shotWait, sizeof(int), 1, dataFile);
   size_t size = player.shotBullet.size();
   fwrite(&size, sizeof(int), 1, dataFile);
   for (int i = 0; i < size; i++) {
     fwrite(&player.shotBullet[i].pos, sizeof(double), 2, dataFile);
     fwrite(&player.shotBullet[i].v, sizeof(double), 2, dataFile);
+    fwrite(&player.shotBullet[i].graphicID, sizeof(int), 1, dataFile);
+    fwrite(&player.shotBullet[i].hitboxID, sizeof(int), 1, dataFile);
     fwrite(&player.shotBullet[i].angle, sizeof(double), 1, dataFile);
   }
   fclose(dataFile);

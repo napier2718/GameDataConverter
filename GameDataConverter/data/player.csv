@@ -1,8 +1,8 @@
-posX,posY,speed,shotWait
-200,500,3,10
-posX,posY,speed,angle
--4,-6,-8,-10
--2,-6,-8,-5
-0,-6,-8,0
-2,-6,-8,5
-4,-6,-8,10
+posX,posY,speed,graphic,shotWait,
+200,500,3,0,10,
+posX,posY,speed,graphic,hitbox,angle
+-4,-6,-8,7,2,-10
+-2,-6,-8,6,1,-5
+0,-6,-8,6,1,0
+2,-6,-8,6,1,5
+4,-6,-8,7,2,10
