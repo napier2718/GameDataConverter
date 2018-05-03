@@ -5,8 +5,8 @@
 
 struct Bullet
 {
+  int graphicID;
   Vector<double> pos, v;
-  int graphicID, hitboxID;
   double angle;
 };
 class Player

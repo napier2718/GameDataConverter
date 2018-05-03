@@ -13,6 +13,7 @@ struct GraphicImage
 {
   int gHandleID;
   Vector<int> size;
+  int hitboxID;
   bool enableAnimation;
   int animationFrame, animationWait;
 };
