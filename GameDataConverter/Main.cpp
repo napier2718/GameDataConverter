@@ -1,3 +1,4 @@
+#include "EnemyPattern.h"
 #include "Graphic.h"
 #include "HitBox.h"
 #include "Player.h"
@@ -18,7 +19,10 @@ int main()
   Player player("data\\player.csv");
   player.WriteDataFile("data\\player.data");
 
-  Stage stage("data\\stage.csv");
+  EnemyPattern ePattern("data\\enemyPattern.csv");
+  ePattern.WriteDataFile("data\\enemyPattern.data");
+
+  Stage stage("data\\stage.csv", ePattern);
   stage.WriteDataFile("data\\stage.data");
 
   return 0;

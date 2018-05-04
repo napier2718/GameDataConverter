@@ -5,7 +5,7 @@
 
 using namespace std;
 
-void Stage::ReadCSVFile(const char * csvFileName)
+void Stage::ReadCSVFile(const char * csvFileName, EnemyPattern &ePattern)
 {
   ifstream csvFile(csvFileName);
   vector<int> types;
@@ -45,7 +45,7 @@ void Stage::ReadCSVFile(const char * csvFileName)
           enemy.graphicID = stoi(record[i]);
           break;
         case 5:
-          enemy.patternID = stoi(record[i]);
+          enemy.patternID = ePattern.GetListPosition(record[i]);
           break;
         }
       }
