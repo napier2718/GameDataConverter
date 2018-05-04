@@ -6,8 +6,9 @@
 
 struct Enemy
 {
+  int time, graphicID;
   Vector<double> pos;
-  int time, graphicID, patternID;
+  int patternID;
 };
 class Stage
 {

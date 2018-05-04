@@ -69,9 +69,9 @@ void Graphic::ReadCSVFile(const char *fileCSVFileName, const char *imageCSVFileN
     if (isHeader) {
       for (unsigned int i = 0; i < record.size(); i++) {
         if (record[i] == "gHandleID" || record[i] == "GHandleID") types.push_back(1);
-        else if (record[i] == "sizeX" || record[i] == "SizeX") types.push_back(2);
-        else if (record[i] == "sizeY" || record[i] == "SizeY") types.push_back(3);
-        else if (record[i] == "hitbox" || record[i] == "Hitbox") types.push_back(4);
+        else if (record[i] == "hitboxID" || record[i] == "HitBoxID") types.push_back(2);
+        else if (record[i] == "sizeX" || record[i] == "SizeX") types.push_back(3);
+        else if (record[i] == "sizeY" || record[i] == "SizeY") types.push_back(4);
         else if (record[i] == "enableAnimation" || record[i] == "EnableAnimation") types.push_back(5);
         else if (record[i] == "animationFrame" || record[i] == "AnimationFrame") types.push_back(6);
         else if (record[i] == "animationWait" || record[i] == "AnimationWait") types.push_back(7);
@@ -87,13 +87,13 @@ void Graphic::ReadCSVFile(const char *fileCSVFileName, const char *imageCSVFileN
           image.gHandleID = stoi(record[i]);
           break;
         case 2:
-          image.size.x = stoi(record[i]);
+          image.hitboxID = stoi(record[i]);
           break;
         case 3:
-          image.size.y = stoi(record[i]);
+          image.size.x = stoi(record[i]);
           break;
         case 4:
-          image.hitboxID = stoi(record[i]);
+          image.size.y = stoi(record[i]);
           break;
         case 5:
           image.enableAnimation = (stoi(record[i]) == 1 ? true : false);
@@ -124,9 +124,8 @@ void Graphic::WriteDataFile(const char *dataFileName)
   size = imageList.size();
   fwrite(&size, sizeof(int), 1, dataFile);
   for (int i = 0; i < size; i++) {
-    fwrite(&imageList[i].gHandleID, sizeof(int), 1, dataFile);
+    fwrite(&imageList[i].gHandleID, sizeof(int), 2, dataFile);
     fwrite(&imageList[i].size, sizeof(int), 2, dataFile);
-    fwrite(&imageList[i].hitboxID, sizeof(int), 1, dataFile);
     fwrite(&imageList[i].enableAnimation, sizeof(bool), 1, dataFile);
     fwrite(&imageList[i].animationFrame, sizeof(int), 2, dataFile);
   }

@@ -24,16 +24,16 @@ void Player::ReadCSVFile(const char * csvFileName)
         for (unsigned int i = 0; i < record.size(); i++) {
           switch (types[i]) {
           case 1:
-            pos.x = stod(record[i]);
+            graphicID = stoi(record[i]);
             break;
           case 2:
-            pos.y = stod(record[i]);
+            pos.x = stod(record[i]);
             break;
           case 3:
-            speed = stod(record[i]);
+            pos.y = stod(record[i]);
             break;
           case 4:
-            graphicID = stoi(record[i]);
+            speed = stod(record[i]);
             break;
           case 5:
             shotWait = stoi(record[i]);
@@ -48,17 +48,17 @@ void Player::ReadCSVFile(const char * csvFileName)
         for (unsigned int i = 0; i < record.size(); i++) {
           switch (types[i]) {
           case 1:
-            bullet.pos.x = stod(record[i]);
+            bullet.graphicID = stoi(record[i]);
             break;
           case 2:
-            bullet.pos.y = stod(record[i]);
+            bullet.pos.x = stod(record[i]);
             break;
           case 3:
-            speed = stod(record[i]);
-            bullet.v.set(0.0, speed);
+            bullet.pos.y = stod(record[i]);
             break;
           case 4:
-            bullet.graphicID = stoi(record[i]);
+            speed = stod(record[i]);
+            bullet.v.set(0.0, speed);
             break;
           case 5:
             bullet.angle = stod(record[i]);
@@ -73,10 +73,10 @@ void Player::ReadCSVFile(const char * csvFileName)
     {
       types.clear();
       for (unsigned int i = 0; i < record.size(); i++) {
-        if (record[i] == "posX" || record[i] == "PosX") types.push_back(1);
-        else if (record[i] == "posY" || record[i] == "PosY") types.push_back(2);
-        else if (record[i] == "speed" || record[i] == "Speed") types.push_back(3);
-        else if (record[i] == "graphic" || record[i] == "Graphic") types.push_back(4);
+        if (record[i] == "graphicID" || record[i] == "GraphicID") types.push_back(1);
+        else if (record[i] == "posX" || record[i] == "PosX") types.push_back(2);
+        else if (record[i] == "posY" || record[i] == "PosY") types.push_back(3);
+        else if (record[i] == "speed" || record[i] == "Speed") types.push_back(4);
         else if (record[i] == "shotWait" || record[i] == "ShotWait") types.push_back(5);
         else if (record[i] == "angle" || record[i] == "Angle") types.push_back(5);
         else types.push_back(0);
@@ -88,16 +88,16 @@ void Player::WriteDataFile(const char * dataFileName)
 {
   FILE *dataFile;
   fopen_s(&dataFile, dataFileName, "wb");
+  fwrite(&graphicID, sizeof(int), 1, dataFile);
   fwrite(&pos, sizeof(double), 2, dataFile);
   fwrite(&speed, sizeof(double), 1, dataFile);
-  fwrite(&graphicID, sizeof(int), 1, dataFile);
   fwrite(&shotWait, sizeof(int), 1, dataFile);
   size_t size = shotBullet.size();
   fwrite(&size, sizeof(int), 1, dataFile);
   for (int i = 0; i < size; i++) {
+    fwrite(&shotBullet[i].graphicID, sizeof(int), 1, dataFile);
     fwrite(&shotBullet[i].pos, sizeof(double), 2, dataFile);
     fwrite(&shotBullet[i].v, sizeof(double), 2, dataFile);
-    fwrite(&shotBullet[i].graphicID, sizeof(int), 1, dataFile);
     fwrite(&shotBullet[i].angle, sizeof(double), 1, dataFile);
   }
   fclose(dataFile);

@@ -11,9 +11,8 @@ struct GraphicFile
 };
 struct GraphicImage
 {
-  int gHandleID;
+  int gHandleID, hitboxID;
   Vector<int> size;
-  int hitboxID;
   bool enableAnimation;
   int animationFrame, animationWait;
 };

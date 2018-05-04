@@ -16,8 +16,9 @@ public:
   void ReadCSVFile(const char *csvFileName);
   void WriteDataFile(const char *dataFileName);
 private:
+  int graphicID;
   Vector<double> pos;
   double speed;
-  int graphicID, shotWait;
+  int shotWait;
   std::vector<Bullet> shotBullet;
 };
