@@ -45,7 +45,7 @@ void Stage::ReadCSVFile(const char * csvFileName, EnemyPattern &ePattern)
           enemy.time = stoi(record[i]);
           break;
         case 5:
-          enemy.patternID = ePattern.GetListPosition(record[i]);
+          enemy.patternID = ePattern.GetPatternPosition(record[i]);
           break;
         }
       }

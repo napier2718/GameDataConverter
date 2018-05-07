@@ -12,7 +12,7 @@ enum ObjectType
 };
 enum LinkType
 {
-  none,
+  lNone,
   start,
   end,
 };

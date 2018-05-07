@@ -1,2 +1,3 @@
-down,normal_move,,
-down_and_shot,down,60,shot
+down,move_normal,DOWN,,
+chaser,move_normal,PLAYER,,
+down_and_shot,down,60,shot,PLAYER

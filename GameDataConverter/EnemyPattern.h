@@ -1,21 +1,29 @@
 #pragma once
 #include <unordered_map>
 
-struct Token
-{
-  Token(std::string t, int r) :token(t), repeat(r) {}
-  std::string token;
-  int repeat;
-};
-enum PatternType
+enum BasePatternType
 {
   wait,
-  normal_move,
+  move_normal,
   shot,
+};
+enum DirectionType
+{
+  dNone,
+  up,
+  down,
+  right,
+  left,
+  player,
+};
+struct BasePattern
+{
+  BasePatternType pattern;
+  DirectionType direction;
 };
 struct Pattern
 {
-  std::vector<PatternType> list;
+  std::vector<BasePattern> list;
 };
 class EnemyPattern
 {
@@ -23,10 +31,17 @@ public:
   EnemyPattern(const char *csvFileName) { ReadCSVFile(csvFileName); }
   void ReadCSVFile(const char *csvFileName);
   void WriteDataFile(const char *dataFileName);
-  int GetListPosition(const std::string &name) { return listMap[name]; }
+  int GetPatternPosition(const std::string &name) { return patternMap[name]; }
 private:
-  std::vector<PatternType> ExpandToken(const std::string &token);
+  struct Token
+  {
+    Token(std::string n, DirectionType d, int r) :name(n), direction(d), repeat(r) {}
+    std::string name;
+    DirectionType direction;
+    int repeat;
+  };
+  std::vector<BasePattern> ExpandToken(const Token&);
   std::unordered_map<std::string, std::vector<Token>> tokensMap;
-  std::vector<Pattern> list;
-  std::unordered_map<std::string, int> listMap;
+  std::vector<Pattern> patterns;
+  std::unordered_map<std::string, int> patternMap;
 };

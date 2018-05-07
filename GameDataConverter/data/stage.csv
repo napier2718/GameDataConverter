@@ -2,7 +2,7 @@ time,graphicID,posX,posY,pattern
 0,4,150,0,down_and_shot
 0,4,250,0,down_and_shot
 50,4,100,0,down
-50,4,200,0,down
+50,4,200,0,chaser
 50,4,300,0,down
 100,5,150,0,down
 100,5,250,0,down

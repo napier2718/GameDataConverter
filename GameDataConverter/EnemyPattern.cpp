@@ -25,7 +25,12 @@ void EnemyPattern::ReadCSVFile(const char *csvFileName)
       else {
         if (buffer.empty()) break;
         if (all_of(buffer.cbegin(), buffer.cend(), isdigit)) tokens.back().repeat = stoi(buffer);
-        else tokens.push_back(Token(buffer, 1));
+        else if (buffer == "UP") tokens.back().direction = DirectionType::up;
+        else if (buffer == "DOWN") tokens.back().direction = DirectionType::down;
+        else if (buffer == "RIGHT") tokens.back().direction = DirectionType::right;
+        else if (buffer == "LEFT") tokens.back().direction = DirectionType::left;
+        else if (buffer == "PLAYER") tokens.back().direction = DirectionType::player;
+        else tokens.push_back(Token(buffer, DirectionType::dNone, 1));
       }
     }
     tokensMap[name] = tokens;
@@ -34,39 +39,39 @@ void EnemyPattern::ReadCSVFile(const char *csvFileName)
   for (const auto pair : tokensMap) {
     Pattern pattern;
     for (const Token token : pair.second) {
-      const vector<PatternType> temp = ExpandToken(token.token);
-      pattern.list.reserve(pattern.list.size() + temp.size() * token.repeat);
-      for (int i = 0; i<token.repeat; i++) pattern.list.insert(pattern.list.end(), temp.begin(), temp.end());
+      const vector<BasePattern> fragment = ExpandToken(token);
+      pattern.list.reserve(pattern.list.size() + fragment.size() * token.repeat);
+      for (int i = 0; i<token.repeat; i++) pattern.list.insert(pattern.list.end(), fragment.begin(), fragment.end());
     }
-    listMap[pair.first] = (int)list.size();
-    list.push_back(pattern);
+    patternMap[pair.first] = (int)patterns.size();
+    patterns.push_back(pattern);
   }
 }
 void EnemyPattern::WriteDataFile(const char *dataFileName)
 {
   FILE *dataFile;
   fopen_s(&dataFile, dataFileName, "wb");
-  size_t size = list.size();
+  size_t size = patterns.size();
   fwrite(&size, sizeof(int), 1, dataFile);
-  for (size_t i = 0; i < list.size(); i++)
+  for (size_t i = 0; i < patterns.size(); i++)
   {
-    size = list[i].list.size();
+    size = patterns[i].list.size();
     fwrite(&size, sizeof(int), 1, dataFile);
-    fwrite(&list[i].list[0], sizeof(PatternType), size, dataFile);
+    fwrite(&patterns[i].list[0], sizeof(BasePattern), size, dataFile);
   }
 }
-vector<PatternType> EnemyPattern::ExpandToken(const string &token)
+vector<BasePattern> EnemyPattern::ExpandToken(const Token &token)
 {
-  vector<PatternType> tempList;
-  if (token == "wait") tempList.push_back(wait);
-  else if (token == "normal_move") tempList.push_back(normal_move);
-  else if (token == "shot") tempList.push_back(shot);
+  vector<BasePattern> fragment;
+  if (token.name == "wait") fragment.push_back({ wait, DirectionType::dNone });
+  else if (token.name == "move_normal") fragment.push_back({ move_normal, token.direction });
+  else if (token.name == "shot") fragment.push_back({ shot, token.direction });
   else {
-    for (const Token child : tokensMap[token]) {
-      const vector<PatternType> temp = ExpandToken(child.token);
-      tempList.reserve(tempList.size() + temp.size() * child.repeat);
-      for (int i = 0; i<child.repeat; i++) tempList.insert(tempList.end(), temp.begin(), temp.end());
+    for (const Token childToken : tokensMap[token.name]) {
+      const vector<BasePattern> childList = ExpandToken(childToken);
+      fragment.reserve(fragment.size() + childList.size() * childToken.repeat);
+      for (int i = 0; i<childToken.repeat; i++) fragment.insert(fragment.end(), childList.begin(), childList.end());
     }
   }
-  return tempList;
+  return fragment;
 }

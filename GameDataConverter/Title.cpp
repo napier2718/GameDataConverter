@@ -39,7 +39,7 @@ void Title::ReadJSONFile(const char *jsonFileName)
     for (int j = 0; j < objectNum; j++) {
       TitleObject object;
       object.id = -1;
-      object.link = none;
+      object.link = lNone;
       object.text.clear();
       if (strncmp(objects[j]["type"].GetString(), "image", 5) == 0) object.type = image;
       else if (strncmp(objects[j]["type"].GetString(), "text", 4) == 0) object.type = text;
