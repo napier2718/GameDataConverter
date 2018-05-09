@@ -3,6 +3,7 @@
 
 enum BasePatternType
 {
+  pNone,
   wait,
   move_normal,
   shot,
@@ -41,6 +42,8 @@ private:
     int repeat;
   };
   std::vector<BasePattern> ExpandToken(const Token&);
+  BasePatternType CheckBasePatternType(const std::string&);
+  DirectionType CheckDirectionType(const std::string&);
   std::unordered_map<std::string, std::vector<Token>> tokensMap;
   std::vector<Pattern> patterns;
   std::unordered_map<std::string, int> patternMap;

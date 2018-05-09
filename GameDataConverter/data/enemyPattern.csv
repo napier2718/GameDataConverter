@@ -1,3 +1,6 @@
-down,move_normal,DOWN,,
-chaser,move_normal,PLAYER,,
-down_and_shot,down,60,shot,PLAYER
+down,move_normal,DOWN,,,,,,,,,,
+chaser,move_normal,PLAYER,,,,,,,,,,
+slide_and_shot,down,60,move_normal,LEFT,90,wait_and_shot,down,60,move_normal,RIGHT,90,wait_and_shot
+down_and_shot,down,60,shot,PLAYER,,,,,,,,
+chase_and_shot,chaser,60,shot,PLAYER,,,,,,,,
+wait_and_shot,wait,30,shot,PLAYER,wait,30,,,,,,

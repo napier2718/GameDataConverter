@@ -11,6 +11,7 @@ void EnemyPattern::ReadCSVFile(const char *csvFileName)
   ifstream csvFile(csvFileName);
   while (!csvFile.eof()) {
     bool isFirst = true;
+    bool isReadDirection = false;
     string name;
     vector<Token> tokens;
     string buffer;
@@ -25,12 +26,17 @@ void EnemyPattern::ReadCSVFile(const char *csvFileName)
       else {
         if (buffer.empty()) break;
         if (all_of(buffer.cbegin(), buffer.cend(), isdigit)) tokens.back().repeat = stoi(buffer);
-        else if (buffer == "UP") tokens.back().direction = DirectionType::up;
-        else if (buffer == "DOWN") tokens.back().direction = DirectionType::down;
-        else if (buffer == "RIGHT") tokens.back().direction = DirectionType::right;
-        else if (buffer == "LEFT") tokens.back().direction = DirectionType::left;
-        else if (buffer == "PLAYER") tokens.back().direction = DirectionType::player;
-        else tokens.push_back(Token(buffer, DirectionType::dNone, 1));
+        else {
+          if (isReadDirection) {
+            tokens.back().direction = CheckDirectionType(buffer);
+            isReadDirection = false;
+          }
+          else {
+            tokens.push_back(Token(buffer, DirectionType::dNone, 1));
+            BasePatternType bpt = CheckBasePatternType(buffer);
+            if (bpt >= move_normal && bpt <= shot) isReadDirection = true;
+          }
+        }
       }
     }
     tokensMap[name] = tokens;
@@ -63,15 +69,31 @@ void EnemyPattern::WriteDataFile(const char *dataFileName)
 vector<BasePattern> EnemyPattern::ExpandToken(const Token &token)
 {
   vector<BasePattern> fragment;
-  if (token.name == "wait") fragment.push_back({ wait, DirectionType::dNone });
-  else if (token.name == "move_normal") fragment.push_back({ move_normal, token.direction });
-  else if (token.name == "shot") fragment.push_back({ shot, token.direction });
-  else {
+  BasePatternType bpt = CheckBasePatternType(token.name);
+  if (bpt == pNone) {
     for (const Token childToken : tokensMap[token.name]) {
       const vector<BasePattern> childList = ExpandToken(childToken);
       fragment.reserve(fragment.size() + childList.size() * childToken.repeat);
       for (int i = 0; i<childToken.repeat; i++) fragment.insert(fragment.end(), childList.begin(), childList.end());
     }
   }
+  else if (bpt == wait)fragment.push_back({ bpt, DirectionType::dNone });
+  else fragment.push_back({ bpt, token.direction });
   return fragment;
+}
+BasePatternType EnemyPattern::CheckBasePatternType(const string &tokenName)
+{
+  if (tokenName == "wait") return BasePatternType::wait;
+  else if (tokenName == "move_normal") return BasePatternType::move_normal;
+  else if (tokenName == "shot") return BasePatternType::shot;
+  return BasePatternType::pNone;
+}
+DirectionType EnemyPattern::CheckDirectionType(const string &tokenName)
+{
+  if (tokenName == "UP") return DirectionType::up;
+  else if (tokenName == "DOWN") return DirectionType::down;
+  else if (tokenName == "RIGHT") return DirectionType::right;
+  else if (tokenName == "LEFT") return DirectionType::left;
+  else if (tokenName == "PLAYER") return DirectionType::player;
+  return DirectionType::dNone;
 }
